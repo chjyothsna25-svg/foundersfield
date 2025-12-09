@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Founders Field - Startup Ideas</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
+    header { background-color: #343a40; color: white; text-align: center; padding: 20px 0; font-size: 2em; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+    .search-container { display: flex; justify-content: center; padding: 20px; background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .search-container input { width: 300px; padding: 10px 15px; font-size: 1em; border-radius: 25px; border: 1px solid #ccc; outline: none; transition: all 0.3s ease; }
+    .search-container input:focus { border-color: #007bff; box-shadow: 0 0 5px rgba(0,123,255,0.5); }
+    .container { display: flex; flex-wrap: wrap; justify-content: center; padding: 40px 20px; gap: 25px; }
+    .category { width: 280px; padding: 20px; border-radius: 15px; color: #fff; text-align: center; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); transition: transform 0.3s ease; text-decoration: none; cursor: pointer; }
+    .category:hover { transform: scale(1.05); }
+    .category-icon { font-size: 45px; margin-bottom: 15px; }
+    .category-title { font-size: 20px; font-weight: bold; padding: 10px; border-radius: 10px; }
+    .agriculture { background-color: #8BC34A; }
+    .health { background-color: #E91E63; }
+    .education { background-color: #3F51B5; }
+    .environment { background-color: #009688; }
+    .e-commerce { background-color: #FF9800; }
+    .finance { background-color: #9C27B0; }
+    .transportation { background-color: #00BCD4; }
+    .technology { background-color: #607D8B; }
+    .entertainment { background-color: #FF5722; }
+    a { text-decoration: none; color: inherit; }
+    .idea-card { width: 300px; background: #fff; border-radius: 15px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s ease; cursor: pointer; color: #333; position: relative; }
+    .idea-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.15); }
+    .idea-header { background-color: #007bff; color: white; padding: 12px 15px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
+    .idea-body { padding: 15px; font-size: 14px; line-height: 1.5; flex-grow: 1; }
+    .idea-footer { display: flex; justify-content: space-between; padding: 10px 15px; border-top: 1px solid #eee; font-weight: 500; color: #555; font-size: 14px; }
+    .idea-footer span { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .idea-category-label { font-size: 12px; background: #e9ecef; color: #495057; padding: 3px 8px; border-radius: 12px; font-weight: 600; }
+    .comments { display: none; flex-direction: column; gap: 10px; padding: 10px 15px; border-top: 1px solid #eee; font-size: 14px; background: #f9f9f9; }
+    .comment { padding: 8px 10px; background: #e9ecef; border-radius: 10px; }
+    .add-comment { display: flex; gap: 10px; margin-top: 10px; }
+    .add-comment input { flex: 1; padding: 5px 10px; border-radius: 10px; border: 1px solid #ccc; outline: none; }
+    .add-comment button { padding: 5px 10px; border-radius: 10px; border: none; background-color: #007bff; color: white; cursor: pointer; }
+    .idea-owner { font-size: 13px; color: #007bff; margin-top: 8px; cursor: pointer; font-weight: 500; }
+    .idea-owner:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>🚀 Founders Field - Startup Ideas Platform</header>
+
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search by category (e.g., Technology)">
+  </div>
+
+  <div class="container" id="ideasContainer">
+    <!-- Category cards -->
+    <a href="#" class="category agriculture" data-category="Agriculture">
+      <div class="category-icon">🌾</div>
+      <div class="category-title">Agriculture</div>
+    </a>
+    <a href="#" class="category health" data-category="Health">
+      <div class="category-icon">🏥</div>
+      <div class="category-title">Health</div>
+    </a>
+    <a href="#" class="category education" data-category="Education">
+      <div class="category-icon">📚</div>
+      <div class="category-title">Education</div>
+    </a>
+    <a href="#" class="category environment" data-category="Environment">
+      <div class="category-icon">🌿</div>
+      <div class="category-title">Environment</div>
+    </a>
+    <a href="#" class="category e-commerce" data-category="E-commerce">
+      <div class="category-icon">🛒</div>
+      <div class="category-title">E-commerce</div>
+    </a>
+    <a href="#" class="category finance" data-category="Finance">
+      <div class="category-icon">💰</div>
+      <div class="category-title">Finance</div>
+    </a>
+    <a href="#" class="category transportation" data-category="Transportation">
+      <div class="category-icon">🚗</div>
+      <div class="category-title">Transportation</div>
+    </a>
+    <a href="#" class="category technology" data-category="Technology">
+      <div class="category-icon">💻</div>
+      <div class="category-title">Technology</div>
+    </a>
+    <a href="#" class="category entertainment" data-category="Entertainment">
+      <div class="category-icon">🎬</div>
+      <div class="category-title">Entertainment</div>
+    </a>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const ideasContainer = document.getElementById('ideasContainer');
+
+    async function checkLogin() {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        return res.ok;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    async function fetchIdeas(category) {
+      const loggedIn = await checkLogin();
+      if (!loggedIn) {
+        alert("Please login first to explore ideas!");
+        window.location.href = "/login.html";
+        return;
+      }
+
+      try {
+        const response = await fetch(`/ideas/category/${category}`);
+        if (!response.ok) throw new Error('No ideas found in this category');
+        const ideas = await response.json();
+        ideas.sort((a, b) => b.likes - a.likes);
+        renderIdeas(ideas, category);
+      } catch (err) {
+        ideasContainer.innerHTML = `<p style="color:red; text-align:center;">${err.message}</p>`;
+      }
+    }
+
+    function renderIdeas(ideas, category) {
+      ideasContainer.innerHTML = `<h2 style="width:100%; text-align:center; margin-bottom:20px;">Top Ideas in ${category}</h2>`;
+      ideas.forEach(idea => {
+        const card = document.createElement('div');
+        card.classList.add('idea-card');
+        card.innerHTML = `
+          <div class="idea-header">
+            <span>${idea.title}</span>
+            <span class="idea-category-label">${idea.category}</span>
+          </div>
+          <div class="idea-body">
+            ${idea.description || ''}
+            <div class="idea-owner" data-userid="${idea.owner?.id || ''}">
+              👤 ${idea.owner && idea.owner.name ? idea.owner.name : 'Unknown User'}
+            </div>
+          </div>
+          <div class="idea-footer">
+            <span class="like-btn" data-id="${idea.ideaId}">👍 ${idea.likes}</span>
+            <span class="comment-btn" data-id="${idea.ideaId}">💬 ${idea.comments.length}</span>
+          </div>
+          <div class="comments" id="comments-${idea.ideaId}">
+            ${idea.comments.map(c => `<div class="comment">${c.username}: ${c.text}</div>`).join('')}
+            <div class="add-comment">
+              <input type="text" placeholder="Write a comment" id="input-${idea.ideaId}">
+              <button data-id="${idea.ideaId}">Add</button>
+            </div>
+          </div>
+        `;
+
+        // 🧠 Owner profile navigation
+        const owner = card.querySelector('.idea-owner');
+        if (owner && owner.dataset.userid) {
+          owner.addEventListener('click', () => {
+            window.location.href = `profile.html?id=${owner.dataset.userid}`;
+          });
+        }
+
+        // 💬 Toggle comments
+        const commentBtn = card.querySelector('.comment-btn');
+        const commentSection = card.querySelector('.comments');
+        commentBtn.addEventListener('click', () => {
+          commentSection.style.display = commentSection.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        // 💌 Add comment
+        const addBtn = card.querySelector('.add-comment button');
+        const addInput = card.querySelector('.add-comment input');
+        addBtn.addEventListener('click', async () => {
+          const text = addInput.value.trim();
+          if (!text) return;
+          try {
+            const response = await fetch(`/ideas/${addBtn.dataset.id}/comments`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text })
+            });
+            if (!response.ok) throw new Error('Failed to add comment');
+            const newComment = await response.json();
+            const newDiv = document.createElement('div');
+            newDiv.classList.add('comment');
+            newDiv.textContent = `${newComment.username}: ${newComment.text}`;
+            commentSection.insertBefore(newDiv, card.querySelector('.add-comment'));
+            addInput.value = '';
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+
+        // ❤️ Like button update
+        const likeBtn = card.querySelector('.like-btn');
+        likeBtn.addEventListener('click', async () => {
+          try {
+            const response = await fetch(`/ideas/${likeBtn.dataset.id}/like`, { method: 'POST' });
+            if (!response.ok) throw new Error('Failed to like idea');
+            const updatedIdea = await response.json();
+            likeBtn.textContent = `👍 ${updatedIdea.likes}`;
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+
+        ideasContainer.appendChild(card);
+      });
+    }
+
+    // 🔍 Search
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const category = searchInput.value.trim();
+        if (category) fetchIdeas(category);
+      }
+    });
+
+    // 🏷️ Category clicks
+    document.querySelectorAll('.category').forEach(cat => {
+      cat.addEventListener('click', () => {
+        fetchIdeas(cat.dataset.category);
+      });
+    });
+  </script>
+</body>
+</html>
+
+

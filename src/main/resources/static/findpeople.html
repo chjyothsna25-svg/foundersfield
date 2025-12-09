@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find People - Founders Field</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f8f9fa;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    background: #343a40;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    font-size: 1.8em;
+    font-weight: 600;
+  }
+
+  .search-container {
+    margin: 40px auto;
+    max-width: 500px;
+    display: flex;
+    gap: 10px;
+  }
+
+  #searchInput {
+    width: 100%;
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 1em;
+  }
+
+  .results-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+    padding-bottom: 50px;
+  }
+
+  .user-card {
+    background: white;
+    width: 420px;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+  }
+
+  .user-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+  }
+
+  .user-avatar {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #6c757d;
+    overflow: hidden;
+    background: #e9ecef;
+  }
+
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .user-name {
+    font-weight: 600;
+    font-size: 1.1em;
+    color: #343a40;
+  }
+
+  .btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+    font-weight: 500;
+    transition: background 0.3s;
+  }
+
+  .btn-message {
+    background: #28a745;
+  }
+
+  .btn-message:hover {
+    background: #1e7e34;
+  }
+
+  .no-results {
+    color: #888;
+    margin-top: 40px;
+    font-size: 1em;
+  }
+</style>
+</head>
+<body>
+
+<header>💬 Find People - Founders Field</header>
+
+<div class="search-container">
+  <input type="text" id="searchInput" placeholder="Type a name to find people...">
+</div>
+
+<div class="results-container" id="resultsContainer">
+  <p class="no-results">Start typing to find users...</p>
+</div>
+
+<script>
+const searchInput = document.getElementById('searchInput');
+const resultsContainer = document.getElementById('resultsContainer');
+let debounceTimer;
+
+// Debounce to avoid too many API calls
+searchInput.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  const query = searchInput.value.trim();
+
+  if (!query) {
+    resultsContainer.innerHTML = `<p class="no-results">Start typing to find users...</p>`;
+    return;
+  }
+
+  debounceTimer = setTimeout(() => fetchUsers(query), 300);
+});
+
+// Fetch users from backend
+async function fetchUsers(query) {
+  try {
+    const res = await fetch(`/users/search?name=${encodeURIComponent(query)}`, {
+      credentials: 'include'
+    });
+
+    if (!res.ok) throw new Error('Failed to fetch users');
+    const users = await res.json();
+
+    if (users.length === 0) {
+      resultsContainer.innerHTML = `<p class="no-results">No users found for "${query}"</p>`;
+      return;
+    }
+
+    renderUsers(users);
+  } catch (err) {
+    resultsContainer.innerHTML = `<p class="no-results" style="color:red;">${err.message}</p>`;
+  }
+}
+
+// Render user cards
+function renderUsers(users) {
+  resultsContainer.innerHTML = '';
+  users.forEach(user => {
+    const initials = user.name ? user.name.charAt(0).toUpperCase() : '?';
+    const profilePic = user.profilePic
+      ? `<img src="${user.profilePic}" alt="${user.name}">`
+      : `<span>${initials}</span>`;
+
+    const card = document.createElement('div');
+    card.classList.add('user-card');
+    card.innerHTML = `
+      <div class="user-info" onclick="viewProfile(${user.id})">
+        <div class="user-avatar">${profilePic}</div>
+        <div class="user-name">${user.name}</div>
+      </div>
+      <button class="btn btn-message" onclick="messageUser(event, ${user.id}, '${user.name}')">Message</button>
+    `;
+    resultsContainer.appendChild(card);
+  });
+}
+
+// View profile
+function viewProfile(userId) {
+  window.location.href = `/profile.html?id=${userId}`;
+}
+
+// Message user → Save to localStorage & redirect to chat
+function messageUser(e, userId, userName) {
+  e.stopPropagation();
+  localStorage.setItem('chatUserId', userId);
+  localStorage.setItem('chatUserName', userName);
+  window.location.href = '/chat.html';
+}
+
+// Get current user info (optional future use)
+let CURRENT_USER_ID;
+async function initCurrentUser() {
+  try {
+    const res = await fetch('/api/auth/me', { credentials: 'include' });
+    if (!res.ok) throw new Error('User not logged in');
+    const user = await res.json();
+    CURRENT_USER_ID = user.id;
+  } catch (err) {
+    alert('Please log in first!');
+  }
+}
+
+initCurrentUser();
+</script>
+
+</body>
+</html>
+
+

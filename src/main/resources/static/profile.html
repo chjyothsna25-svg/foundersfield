@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Profile - Founders Field</title>
+<style>
+  body { font-family:'Segoe UI',sans-serif; background:#f8f9fa; margin:0; padding:0; }
+  header { background:#343a40; color:white; text-align:center; padding:20px; font-size:1.8em; font-weight:600; }
+  .profile-container { max-width:900px; margin:40px auto; background:white; padding:30px; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,0.1); }
+  .profile-header { display:flex; gap:25px; border-bottom:1px solid #e0e0e0; padding-bottom:20px; }
+  .profile-pic { width:100px;height:100px;border-radius:50%;background:#e9ecef; display:flex;align-items:center;justify-content:center;font-size:36px;color:#6c757d; overflow:hidden; }
+  .profile-pic img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+  .profile-info h2 { margin:0;font-size:1.6em;color:#343a40; }
+  .profile-info p { color:#6c757d;margin-top:6px; }
+  .actions { margin-top:15px; }
+  .btn { padding:10px 16px;border:none;border-radius:6px;color:white; cursor:pointer;margin-right:10px;font-weight:500; }
+  .btn-message { background:#28a745; }
+  .btn-message:hover { background:#1e7e34; }
+  .posts-section { margin-top:40px; }
+  .post-card { background:#f9f9f9; border-radius:10px; padding:20px; margin-bottom:15px; box-shadow:0 3px 8px rgba(0,0,0,0.1); cursor:pointer; }
+  .post-title { font-size:1.1em; font-weight:bold; margin-bottom:10px; }
+  .post-category { display:inline-block; background:#007bff; color:white; padding:4px 10px; border-radius:15px; font-size:0.85em; margin-bottom:10px; }
+  .post-desc { color:#495057; font-size:0.95em; line-height:1.5; }
+  .no-posts { text-align:center; color:#6c757d; margin-top:20px; }
+</style>
+</head>
+<body>
+
+<header>👤 User Profile - Founders Field</header>
+
+<div class="profile-container">
+  <div class="profile-header">
+    <div class="profile-pic" id="profilePic">?</div>
+    <div class="profile-info">
+      <h2 id="userName">Loading...</h2>
+      <p id="userEmail"></p>
+      <p id="userBio">Fetching user details...</p>
+      <div class="actions" id="actionsContainer">
+        <button class="btn btn-message" id="messageBtn">Message</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="posts-section">
+    <h3>📜 Posts</h3>
+    <div id="postsContainer">
+      <p class="no-posts">Loading posts...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const userId = params.get("id"); // must match Find People redirect
+
+if (!userId) {
+    document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;'>❌ Invalid user profile!</h2>";
+} else {
+    loadProfile(userId);
+    loadPosts(userId);
+}
+
+// Load user profile
+async function loadProfile(id) {
+    try {
+        const res = await fetch(`/api/users/${id}`, { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch user details");
+        const user = await res.json();
+
+        document.getElementById("userName").innerText = user.name;
+        document.getElementById("userEmail").innerText = user.email || "";
+        document.getElementById("userBio").innerText = user.bio || "No bio provided yet.";
+        const profilePic = document.getElementById("profilePic");
+        profilePic.innerHTML = user.profilePic ? `<img src="${user.profilePic}" alt="${user.name}">` : user.name.charAt(0).toUpperCase();
+
+        // Show message button only if not viewing own profile
+        const currentUserRes = await fetch("/api/auth/me", { credentials: "include" });
+        if(currentUserRes.ok) {
+            const currentUser = await currentUserRes.json();
+            if (parseInt(userId) === currentUser.id) {
+                document.getElementById("actionsContainer").style.display = "none";
+            }
+        }
+
+        document.getElementById("messageBtn").onclick = () => {
+            localStorage.setItem('chatUserId', user.id);
+            localStorage.setItem('chatUserName', user.name);
+            window.location.href = '/chat.html';
+        };
+
+    } catch (err) {
+        document.querySelector(".profile-container").innerHTML = `<p style="color:red;text-align:center;">${err.message}</p>`;
+    }
+}
+
+// Load user posts
+async function loadPosts(id) {
+    try {
+        const res = await fetch(`/api/ideas/user/${id}`, { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch posts");
+        const posts = await res.json();
+        const container = document.getElementById("postsContainer");
+        container.innerHTML = "";
+
+        if(posts.length === 0){
+            container.innerHTML = `<p class="no-posts">No posts yet.</p>`;
+            return;
+        }
+
+        posts.forEach(post => {
+            const card = document.createElement("div");
+            card.className = "post-card";
+            card.innerHTML = `
+                <div class="post-title">${post.title}</div>
+                <div class="post-category">${post.category}</div>
+                <div class="post-desc">${post.description}</div>
+            `;
+            container.appendChild(card);
+        });
+
+    } catch(err) {
+        console.error(err);
+    }
+}
+</script>
+
+</body>
+</html>
+

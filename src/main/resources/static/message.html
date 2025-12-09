@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chat - Founders Field</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+</head>
+<body class="bg-gray-100 flex h-screen">
+
+<!-- Left Sidebar -->
+<div class="w-1/4 bg-white border-r border-gray-300 flex flex-col">
+    <div class="p-4 font-bold text-lg border-b">Chats</div>
+    <div id="usersList" class="flex-1 overflow-y-auto">
+        <!-- Users will be loaded here dynamically -->
+    </div>
+</div>
+
+<!-- Chat Area -->
+<div class="flex-1 flex flex-col">
+    <div class="bg-white p-4 border-b flex justify-between items-center">
+        <div id="chatUserName" class="font-bold text-lg">Select a chat</div>
+    </div>
+    <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-2">
+        <!-- Messages will appear here -->
+    </div>
+    <div class="p-4 bg-white flex items-center gap-2 border-t">
+        <input id="messageInput" type="text" placeholder="Type a message..." class="flex-1 border rounded px-3 py-2">
+        <button id="sendBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Send</button>
+    </div>
+</div>
+
+<script>
+let currentUserId = null;
+let currentChatUserId = null;
+let ws = null;
+
+// Initialize current user
+async function initCurrentUser() {
+    const res = await fetch('/api/auth/me', { credentials: 'include' });
+    if (res.ok) {
+        const user = await res.json();
+        currentUserId = user.id;
+        loadUsers();
+    } else {
+        alert("Please login first!");
+        window.location.href = "login.html";
+    }
+}
+
+// Load users you have chatted with
+async function loadUsers() {
+    const res = await fetch('/api/messages/users', { credentials: 'include' });
+    const users = await res.json();
+    const list = document.getElementById('usersList');
+    list.innerHTML = '';
+
+    users.forEach(user => {
+        const div = document.createElement('div');
+        div.className = "p-3 hover:bg-gray-100 cursor-pointer flex items-center gap-2";
+        div.innerHTML = `<span class="font-medium">${user.name}</span>`;
+        div.onclick = () => selectChat(user.id, user.name);
+        list.appendChild(div);
+    });
+}
+
+// Select a chat user
+function selectChat(userId, userName) {
+    currentChatUserId = userId;
+    document.getElementById('chatUserName').innerText = userName;
+    loadMessages(userId);
+    initWebSocket();
+}
+
+// Load chat messages
+async function loadMessages(userId) {
+    const res = await fetch(`/api/messages/chat/${userId}`, { credentials: 'include' });
+    const messages = await res.json();
+    const container = document.getElementById('chatMessages');
+    container.innerHTML = '';
+    messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = msg.senderId === currentUserId ? 'text-right' : 'text-left';
+        div.innerHTML = `<span class="inline-block px-3 py-1 rounded-lg ${msg.senderId===currentUserId?'bg-blue-600 text-white':'bg-gray-300'}">${msg.content}</span>`;
+        container.appendChild(div);
+    });
+    container.scrollTop = container.scrollHeight;
+}
+
+// Initialize WebSocket
+function initWebSocket() {
+    if (ws) ws.close();
+    ws = new WebSocket(`ws://${window.location.host}/ws`);
+
+    ws.onopen = () => console.log("WebSocket connected");
+    ws.onmessage = (evt) => {
+        const msg = JSON.parse(evt.data);
+        if (msg.senderId === currentChatUserId || msg.senderId === currentUserId) {
+            loadMessages(currentChatUserId);
+        }
+    };
+}
+
+// Send a message
+document.getElementById('sendBtn').addEventListener('click', async () => {
+    const input = document.getElementById('messageInput');
+    const content = input.value.trim();
+    if (!content || !currentChatUserId) return;
+
+    await fetch(`/api/messages/send?receiverId=${currentChatUserId}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+    });
+
+    input.value = '';
+    loadMessages(currentChatUserId);
+    if (ws) ws.send(JSON.stringify({ senderId: currentUserId, receiverId: currentChatUserId, content }));
+});
+
+initCurrentUser();
+</script>
+
+</body>
+</html>
